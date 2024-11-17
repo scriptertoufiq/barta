@@ -7,8 +7,12 @@ use App\Filament\Resources\UserResource\RelationManagers;
 use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Actions\Action;
+use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\IconColumn;
@@ -61,7 +65,9 @@ class UserResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('name'),
-                TextColumn::make('email'),
+                TextColumn::make('email')
+                    ->wrap()  // Enable text wrapping for this column
+                    ->limit(30),
                 TextColumn::make('is_admin')
                     ->label('Role')
                     ->badge()
@@ -74,10 +80,51 @@ class UserResource extends Resource
                     ->color(fn ($state) => $state ? 'success' : 'danger'),
             ])
             ->filters([
-                //
+                SelectFilter::make('is_admin')
+                    ->label('User Type')
+                    ->options([
+                        '1' => 'Admin',
+                        '0' => 'User',
+                    ]),
+                SelectFilter::make('status')
+                    ->label('User Status')
+                    ->options([
+                        '1' => 'Active',
+                        '0' => 'Disabled',
+                    ]),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Action::make('Active')
+                    ->badge()
+                    ->requiresConfirmation()
+                    ->modalHeading('Are you sure?')
+                    ->modalSubheading('Do you really want to proceed with this action?')
+                    ->color('success')
+                    ->action(function (User $record) {
+                        $record->status = true;
+                        $record->save();
+                        Notification::make()
+                            ->body('User Status update successfully completed.')
+                            ->success()
+                            ->send();
+                    })
+                    ->hidden(fn (User $record): bool => $record->status),
+                Action::make('Disable')
+                    ->color('danger')
+                    ->badge()
+                    ->requiresConfirmation()
+                    ->modalHeading('Are you sure?')
+                    ->modalSubheading('Do you really want to proceed with this action?')
+                    ->action(function (User $record) {
+                        $record->status = false;
+                        $record->save();
+                        Notification::make()
+                            ->body('User Status update successfully completed.')
+                            ->success()
+                            ->send();
+                    })
+                    ->visible(fn (User $record): bool => $record->status),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
