@@ -26,7 +26,7 @@ class UserResource extends Resource
 {
     protected static ?string $model = User::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-users';
 
 
 
@@ -64,18 +64,18 @@ class UserResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('name'),
-                TextColumn::make('email')
-                    ->wrap()  // Enable text wrapping for this column
-                    ->limit(30),
+                TextColumn::make('name')->sortable()->searchable(),
+                TextColumn::make('email')->sortable(),
                 TextColumn::make('is_admin')
                     ->label('Role')
                     ->badge()
+                    ->sortable()
                     ->formatStateUsing(fn ($state) => $state ? 'Admin' : 'User')
                     ->color(fn ($state) => $state ? 'success' : 'primary'),
                 TextColumn::make('status')
                     ->label('Status')
                     ->badge()
+                    ->sortable()
                     ->formatStateUsing(fn ($state) => $state ? 'Active' : 'Disable')
                     ->color(fn ($state) => $state ? 'success' : 'danger'),
             ])
@@ -96,7 +96,7 @@ class UserResource extends Resource
             ->actions([
                 Tables\Actions\EditAction::make(),
                 Action::make('Active')
-                    ->badge()
+                    ->icon('heroicon-s-rocket-launch')
                     ->requiresConfirmation()
                     ->modalHeading('Are you sure?')
                     ->modalSubheading('Do you really want to proceed with this action?')
@@ -112,7 +112,7 @@ class UserResource extends Resource
                     ->hidden(fn (User $record): bool => $record->status),
                 Action::make('Disable')
                     ->color('danger')
-                    ->badge()
+                    ->icon('heroicon-s-x-circle')
                     ->requiresConfirmation()
                     ->modalHeading('Are you sure?')
                     ->modalSubheading('Do you really want to proceed with this action?')
