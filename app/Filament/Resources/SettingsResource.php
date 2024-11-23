@@ -30,7 +30,7 @@ class SettingsResource extends Resource
                 Grid::make(1)
                     ->schema([
                         TextInput::make('system_name')
-                            ->label('System Name')
+                            ->label('System Names')
                             ->required()
                             ->placeholder('Enter System Name'),
                     ]),
